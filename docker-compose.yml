@@ -1,6 +1,6 @@
 # MarsAI ERPNext — Production Docker Compose for Coolify
 # Deploy via Coolify as Docker Compose resource
-# Domain: erp.marsai.eu → frontend:8080
+# Domain: erp.marsai.co.uk → frontend:8080
 #
 # First deploy creates the site automatically via create-site service.
 # Admin password: MarsERP2026!
@@ -13,7 +13,7 @@ services:
     command: nginx-entrypoint.sh
     environment:
       BACKEND: backend:8000
-      FRAPPE_SITE_NAME_HEADER: erp.marsai.eu
+      FRAPPE_SITE_NAME_HEADER: erp.marsai.co.uk
       SOCKETIO: websocket:9000
       UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
@@ -152,7 +152,7 @@ services:
           fi
         done;
         echo "Config ready, creating site...";
-        bench new-site erp.marsai.eu
+        bench new-site erp.marsai.co.uk
           --mariadb-user-host-login-scope='%'
           --admin-password=MarsERP2026!
           --db-root-username=root
