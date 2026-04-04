@@ -152,13 +152,7 @@ services:
           fi
         done;
         echo "Config ready, creating site...";
-        bench new-site erp.marsai.co.uk
-          --mariadb-user-host-login-scope='%'
-          --admin-password=MarsERP2026!
-          --db-root-username=root
-          --db-root-password=marsai_erp_db_2026
-          --install-app erpnext
-          --set-default;
+        bench new-site erp.marsai.co.uk --mariadb-user-host-login-scope='%' --admin-password=MarsERP2026! --db-root-username=root --db-root-password=marsai_erp_db_2026 --install-app erpnext --set-default;
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
