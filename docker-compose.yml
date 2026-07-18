@@ -2,13 +2,15 @@
 # Deploy via Coolify as Docker Compose resource
 # Domain: erp.marsai.co.uk → frontend:8080
 #
-# First deploy creates the site automatically via create-site service.
+# create-site is idempotent: it creates the site on first deploy and runs
+# `bench migrate` on every subsequent redeploy — so redeploys are safe and
+# apply pending schema patches without data loss. Never re-adds --force.
 # Admin password: MarsERP2026!
 
 services:
   # ==================== Frontend (Nginx) ====================
   frontend:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     command: nginx-entrypoint.sh
     environment:
@@ -31,7 +33,7 @@ services:
 
   # ==================== Backend (Gunicorn) ====================
   backend:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     volumes:
       - sites:/home/frappe/frappe-bench/sites
@@ -47,7 +49,7 @@ services:
 
   # ==================== WebSocket (Socket.IO) ====================
   websocket:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     command:
       - node
@@ -61,7 +63,7 @@ services:
 
   # ==================== Scheduler ====================
   scheduler:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     command: bench schedule
     volumes:
@@ -73,7 +75,7 @@ services:
 
   # ==================== Workers ====================
   queue-short:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     command: bench worker --queue short,default
     volumes:
@@ -84,7 +86,7 @@ services:
         condition: service_completed_successfully
 
   queue-long:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: unless-stopped
     command: bench worker --queue long,default,short
     volumes:
@@ -96,7 +98,7 @@ services:
 
   # ==================== Configurator (one-shot) ====================
   configurator:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: on-failure
     entrypoint:
       - bash
@@ -127,9 +129,9 @@ services:
       redis-queue:
         condition: service_started
 
-  # ==================== Site Creator (one-shot, first deploy only) ====================
+  # ==================== Site Creator / Migrator (idempotent: create on first deploy, migrate on every update) ====================
   create-site:
-    image: frappe/erpnext:v16.12.0
+    image: frappe/erpnext:v16.28.0
     restart: "no"
     entrypoint:
       - bash
@@ -151,8 +153,13 @@ services:
             exit 1;
           fi
         done;
-        echo "Config ready, creating site...";
-        bench new-site erp.marsai.co.uk --force --mariadb-user-host-login-scope='%' --admin-password=MarsERP2026! --db-root-username=root --db-root-password=marsai_erp_db_2026 --install-app erpnext --set-default;
+        if [ -f sites/erp.marsai.co.uk/site_config.json ]; then
+          echo "Site exists — running migrate for version update...";
+          bench --site erp.marsai.co.uk migrate;
+        else
+          echo "Site missing — creating fresh site...";
+          bench new-site erp.marsai.co.uk --mariadb-user-host-login-scope='%' --admin-password=MarsERP2026! --db-root-username=root --db-root-password=marsai_erp_db_2026 --install-app erpnext --set-default;
+        fi
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
