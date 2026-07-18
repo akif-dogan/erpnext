@@ -5,7 +5,7 @@
 # create-site is idempotent: it creates the site on first deploy and runs
 # `bench migrate` on every subsequent redeploy — so redeploys are safe and
 # apply pending schema patches without data loss. Never re-adds --force.
-# Admin password: MarsERP2026!
+# Admin password: Coolify env ADMIN_PASSWORD ile yonetiliyor
 
 services:
   # ==================== Frontend (Nginx) ====================
@@ -41,8 +41,8 @@ services:
     environment:
       DB_HOST: db
       DB_PORT: "3306"
-      MYSQL_ROOT_PASSWORD: marsai_erp_db_2026
-      MARIADB_ROOT_PASSWORD: marsai_erp_db_2026
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -158,7 +158,7 @@ services:
           bench --site erp.marsai.co.uk migrate;
         else
           echo "Site missing — creating fresh site...";
-          bench new-site erp.marsai.co.uk --mariadb-user-host-login-scope='%' --admin-password=MarsERP2026! --db-root-username=root --db-root-password=marsai_erp_db_2026 --install-app erpnext --set-default;
+          bench new-site erp.marsai.co.uk --mariadb-user-host-login-scope='%' --admin-password=${ADMIN_PASSWORD} --db-root-username=root --db-root-password=${DB_ROOT_PASSWORD} --install-app erpnext --set-default;
         fi
     volumes:
       - sites:/home/frappe/frappe-bench/sites
@@ -177,12 +177,12 @@ services:
       - --skip-character-set-client-handshake
       - --skip-innodb-read-only-compressed
     environment:
-      MYSQL_ROOT_PASSWORD: marsai_erp_db_2026
-      MARIADB_ROOT_PASSWORD: marsai_erp_db_2026
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MARIADB_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
-      test: mysqladmin ping -h localhost --password=marsai_erp_db_2026
+      test: mysqladmin ping -h localhost --password=${DB_ROOT_PASSWORD}
       interval: 5s
       timeout: 5s
       retries: 10
