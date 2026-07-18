@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag (or. v16.28.0-mars1)"
+        description: "Image tag"
         required: true
         default: "v16.28.0-mars1"
   push:
@@ -31,10 +31,6 @@ jobs:
           repository: frappe/frappe_docker
           path: frappe_docker
 
-      - name: apps.json -> base64
-        id: appsjson
-        run: echo "b64=$(base64 -w0 docker/apps.json)" >> "$GITHUB_OUTPUT"
-
       - name: Resolve tag
         id: tag
         run: echo "tag=${{ github.event.inputs.image_tag || 'v16.28.0-mars1' }}" >> "$GITHUB_OUTPUT"
@@ -49,7 +45,7 @@ jobs:
       - name: Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build & push (layered custom apps)
+      - name: Build & push (layered, apps.json via build secret)
         uses: docker/build-push-action@v6
         with:
           context: frappe_docker
@@ -57,6 +53,7 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}:${{ steps.tag.outputs.tag }}
           build-args: |
-            FRAPPE_PATH=https://github.com/frappe/frappe
             FRAPPE_BRANCH=version-16
-            APPS_JSON_BASE64=${{ steps.appsjson.outputs.b64 }}
+            FRAPPE_PATH=https://github.com/frappe/frappe
+          secret-files: |
+            apps_json=${{ github.workspace }}/docker/apps.json
