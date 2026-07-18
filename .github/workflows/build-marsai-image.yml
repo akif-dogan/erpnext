@@ -5,7 +5,7 @@ on:
       image_tag:
         description: "Image tag"
         required: true
-        default: "v16.28.0-mars1"
+        default: "v16.28.0-mars2"
   push:
     branches: [marsai-image]
     paths:
@@ -33,7 +33,7 @@ jobs:
 
       - name: Resolve tag
         id: tag
-        run: echo "tag=${{ github.event.inputs.image_tag || 'v16.28.0-mars1' }}" >> "$GITHUB_OUTPUT"
+        run: echo "tag=${{ github.event.inputs.image_tag || 'v16.28.0-mars2' }}" >> "$GITHUB_OUTPUT"
 
       - name: GHCR login
         uses: docker/login-action@v3
