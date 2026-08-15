@@ -10,7 +10,7 @@
 services:
   # ==================== Frontend (Nginx) ====================
   frontend:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     command: nginx-entrypoint.sh
     environment:
@@ -33,7 +33,7 @@ services:
 
   # ==================== Backend (Gunicorn) ====================
   backend:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     volumes:
       - sites:/home/frappe/frappe-bench/sites
@@ -49,7 +49,7 @@ services:
 
   # ==================== WebSocket (Socket.IO) ====================
   websocket:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     command:
       - node
@@ -63,7 +63,7 @@ services:
 
   # ==================== Scheduler ====================
   scheduler:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     command: bench schedule
     volumes:
@@ -75,7 +75,7 @@ services:
 
   # ==================== Workers ====================
   queue-short:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     command: bench worker --queue short,default
     volumes:
@@ -86,7 +86,7 @@ services:
         condition: service_completed_successfully
 
   queue-long:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: unless-stopped
     command: bench worker --queue long,default,short
     volumes:
@@ -98,7 +98,7 @@ services:
 
   # ==================== Configurator (one-shot) ====================
   configurator:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: on-failure
     entrypoint:
       - bash
@@ -130,14 +130,12 @@ services:
         condition: service_started
 
   # ==================== Site Creator / Migrator (idempotent: create on first deploy, migrate on every update) ====================
-  # NOT: sonundaki `ln -sfn` bilincli. `sites/` bir volume ve icindeki
-  # `assets/` dizini 2026-07-18'deki taban imajdan kalma; marsai_platform o
-  # tarihte public/ varligi tasimadigi icin sembolik bagi hic olusmadi.
-  # Bag olmadan /assets/marsai_platform/... 404 doner (Desk uygulama
-  # kutucugunun logosu kirik cikar). Imaj derlemesinde yaratilamaz -- volume
-  # calisma aninda uzerine biner. `-sfn` idempotent, her deploy'da guvenle kosar.
+  # NOT: marsai_platform varlik (asset) sembolik bagi BURADA DEGIL, imajda
+  # yaratiliyor (mars28+). Sebep: `sites/assets` volume'un icinde degil,
+  # imajdaki /home/frappe/frappe-bench/assets dizinine giden bir bag; calisma
+  # aninda oraya yazan container kendi katmanina yazar ve cikinca kaybolur.
   create-site:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars27
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars28
     restart: "no"
     entrypoint:
       - bash
@@ -169,9 +167,7 @@ services:
         else
           echo "Site missing — creating fresh site...";
           bench new-site erp.marsai.co.uk --mariadb-user-host-login-scope='%' --admin-password=${ADMIN_PASSWORD} --db-root-username=root --db-root-password=${DB_ROOT_PASSWORD} --install-app erpnext --install-app payments --install-app telephony --install-app helpdesk --install-app marsai_platform --set-default;
-        fi;
-        echo "Ensuring marsai_platform asset symlink...";
-        ln -sfn /home/frappe/frappe-bench/apps/marsai_platform/marsai_platform/public /home/frappe/frappe-bench/sites/assets/marsai_platform;
+        fi
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - logs:/home/frappe/frappe-bench/logs
