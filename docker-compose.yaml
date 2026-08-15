@@ -10,7 +10,7 @@
 services:
   # ==================== Frontend (Nginx) ====================
   frontend:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     command: nginx-entrypoint.sh
     environment:
@@ -33,7 +33,7 @@ services:
 
   # ==================== Backend (Gunicorn) ====================
   backend:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     volumes:
       - sites:/home/frappe/frappe-bench/sites
@@ -49,7 +49,7 @@ services:
 
   # ==================== WebSocket (Socket.IO) ====================
   websocket:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     command:
       - node
@@ -63,7 +63,7 @@ services:
 
   # ==================== Scheduler ====================
   scheduler:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     command: bench schedule
     volumes:
@@ -75,7 +75,7 @@ services:
 
   # ==================== Workers ====================
   queue-short:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     command: bench worker --queue short,default
     volumes:
@@ -86,7 +86,7 @@ services:
         condition: service_completed_successfully
 
   queue-long:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: unless-stopped
     command: bench worker --queue long,default,short
     volumes:
@@ -98,7 +98,7 @@ services:
 
   # ==================== Configurator (one-shot) ====================
   configurator:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: on-failure
     entrypoint:
       - bash
@@ -135,7 +135,7 @@ services:
   # imajdaki /home/frappe/frappe-bench/assets dizinine giden bir bag; calisma
   # aninda oraya yazan container kendi katmanina yazar ve cikinca kaybolur.
   create-site:
-    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars29
+    image: ghcr.io/akif-dogan/erpnext-marsai:v16.28.0-mars30
     restart: "no"
     entrypoint:
       - bash
